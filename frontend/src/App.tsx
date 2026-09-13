@@ -1,13 +1,19 @@
 import { useState } from 'react'
 
-function App() {
-  const [count, setCount] = useState(0)
+interface HabitCardProps {
+  name: string;
+  streak: number;
+}
 
+function HabitCard({name, streak}: HabitCardProps){
+  return <p>{name}: {streak} day streak</p>
+}
+
+function App() {
   return (
     <div>
-      <button onClick={() => setCount(count+1)}>Complete today</button>
-      <p>Current streak: {count}</p>
-      {count % 5 === 0 && count > 0 ? <p>Milestone!</p> : null}
+      <HabitCard name="nap" streak={6} />
+      <HabitCard name="read" streak={20} />
     </div>
   )
 }
