@@ -58,9 +58,22 @@ function LoginForm() {
   const[username, setUsername] = useState("")
   const[password, setPassword] = useState("")
 
-  function handleSubmit(e: React.SubmitEvent) {
+  async function handleSubmit(e: React.SubmitEvent) {
     e.preventDefault();
-    console.log("Submitting username:", username, "and password:", password);
+
+    const body = new URLSearchParams({username, password})
+    const response = await fetch("http://127.0.0.1:8000/users/login", {
+      method: "POST",
+      body: body,
+    });
+
+    if (!response.ok) {
+      console.log("Failed to login, status: ", response.status);
+      return;
+    }
+
+    const data = await response.json();
+    localStorage.setItem("access_token", data.access_token)
   }
 
   return (
