@@ -34,9 +34,10 @@ interface Habit {
 
 interface HabitViewerProps {
   refreshTrigger: number;
+  onHabitChanged: () => void;
 }
 
-function HabitViewer({refreshTrigger}: HabitViewerProps){
+function HabitViewer({refreshTrigger, onHabitChanged}: HabitViewerProps){
   const [habits, setHabits] = useState<Habit[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -73,10 +74,35 @@ function HabitViewer({refreshTrigger}: HabitViewerProps){
     return <p>Loading...</p>;
   }
 
+  async function handleDelete(id: number) {
+    const confirmed = window.confirm("Are you sure you want to delete this?");
+    if (!confirmed) {
+      return;
+    }
+
+    const token = localStorage.getItem("access_token");
+    const response = await fetch(`http://127.0.0.1:8000/habits/${id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`, 
+      },
+    });
+
+    if (!response.ok) {
+      console.log("Failed to delete, status:", response.status)
+      return;
+    }
+
+    onHabitChanged();
+  }
+
   return(
     <div>
       {habits.map((habit) => (
-        <p key={habit.id}>{habit.name}</p>
+        <div key={habit.id}>
+          <p>{habit.name}</p>
+          <button onClick={()=>handleDelete(habit.id)}>Delete</button>
+        </div>
       ))}
     </div>
   )
@@ -182,7 +208,10 @@ function App() {
   return (
     <div>
       <HabitList />
-      <HabitViewer refreshTrigger={refreshTrigger}/>
+      <HabitViewer 
+      refreshTrigger={refreshTrigger}
+      onHabitChanged={handleLogin}
+      />
       <LoginForm onLogin={handleLogin}/>
       <CreateHabitForm onCreated={handleLogin}/>
     </div>
