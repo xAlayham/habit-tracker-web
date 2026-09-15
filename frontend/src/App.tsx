@@ -127,6 +127,51 @@ function LoginForm({onLogin}: LoginFormProps) {
   );
 }
 
+function CreateHabitForm({ onCreated }: { onCreated: () => void}) {
+  const[name, setName] = useState("");
+  const[frequency, setFrequency] = useState("");
+
+  async function handleSubmit(e: React.SubmitEvent) {
+    e.preventDefault();
+
+    const token = localStorage.getItem("access_token");
+
+    const response = await fetch("http://127.0.0.1:8000/habits", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({name, frequency}),
+    });
+
+    if (!response.ok) {
+      console.log("Failed to create habit, status:", response.status)
+      return;
+    }
+
+    setName("");
+    onCreated();
+  }
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <input
+        type="text"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+      />
+      <select value={frequency} onChange={(e)=>setFrequency(e.target.value)}>
+        <option value="daily">Daily</option>
+        <option value="weekly">Weekly</option>
+        <option value="monthly">Monthly</option>
+        <option value="yearly">Yearly</option>
+      </select>
+      <button type="submit">Create Habit</button>
+    </form>
+  );
+}
+
 function App() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
@@ -139,6 +184,7 @@ function App() {
       <HabitList />
       <HabitViewer refreshTrigger={refreshTrigger}/>
       <LoginForm onLogin={handleLogin}/>
+      <CreateHabitForm onCreated={handleLogin}/>
     </div>
   )
 }
