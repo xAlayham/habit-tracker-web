@@ -27,31 +27,55 @@ function HabitList() {
 
 interface Habit {
   name: string
-  version: string
+  id: number
+  frequency: string
+  completed: boolean
 }
 
 function HabitViewer(){
-  const [habit, setHabit] = useState<Habit | null>(null);
+  const [habits, setHabits] = useState<Habit[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    async function loadHabit() {
-      const response = await fetch("http://127.0.0.1:8000/")
-      const data = await response.json();
-      setHabit(data)
+    async function loadHabits() {
+      const token = localStorage.getItem("access_token")
+      const response = await fetch("http://127.0.0.1:8000/habits", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if(response.status === 401) {
+        setError("You're not logged in.");
+        return;
+      }
+
+      if(!response.ok) {
+        setError("Something went wrong.");
+        return;
+      }
+
+      const data = await  response.json();
+      setHabits(data)
     }
-    loadHabit();
+    loadHabits();
   }, []);
 
+  if (error !== null) {
+    return <p>{error}</p>;
+  }
 
-    if (habit === null) {
-      return <p>Loading...</p>
-    }
-    return(
-      <div>
-        <p>{habit.name}</p>
-        <p>{habit.version}</p>
-      </div>
-    );
+  if (habits === null) {
+    return <p>Loading...</p>;
+  }
+
+  return(
+    <div>
+      {habits.map((habit) => (
+        <p key={habit.id}>{habit.name}</p>
+      ))}
+    </div>
+  )
 }
 
 function LoginForm() {
