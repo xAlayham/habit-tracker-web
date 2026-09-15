@@ -32,7 +32,11 @@ interface Habit {
   completed: boolean
 }
 
-function HabitViewer(){
+interface HabitViewerProps {
+  refreshTrigger: number;
+}
+
+function HabitViewer({refreshTrigger}: HabitViewerProps){
   const [habits, setHabits] = useState<Habit[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -59,7 +63,7 @@ function HabitViewer(){
       setHabits(data)
     }
     loadHabits();
-  }, []);
+  }, [refreshTrigger]);
 
   if (error !== null) {
     return <p>{error}</p>;
@@ -78,7 +82,11 @@ function HabitViewer(){
   )
 }
 
-function LoginForm() {
+interface LoginFormProps {
+  onLogin: () => void;    
+}
+
+function LoginForm({onLogin}: LoginFormProps) {
   const[username, setUsername] = useState("")
   const[password, setPassword] = useState("")
 
@@ -98,6 +106,8 @@ function LoginForm() {
 
     const data = await response.json();
     localStorage.setItem("access_token", data.access_token)
+
+    onLogin();
   }
 
   return (
@@ -118,11 +128,17 @@ function LoginForm() {
 }
 
 function App() {
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  function handleLogin() {
+    setRefreshTrigger(refreshTrigger + 1);
+  }
+ 
   return (
     <div>
       <HabitList />
-      <HabitViewer />
-      <LoginForm />
+      <HabitViewer refreshTrigger={refreshTrigger}/>
+      <LoginForm onLogin={handleLogin}/>
     </div>
   )
 }
