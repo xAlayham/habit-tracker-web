@@ -1,4 +1,4 @@
-import { useState, useEffect} from "react";
+import React, { useState, useEffect} from "react";
 
 interface HabitCardProps {
   name: string;
@@ -165,7 +165,7 @@ function CreateHabitForm({ onCreated }: { onCreated: () => void}) {
     const response = await fetch("http://127.0.0.1:8000/habits", {
       method: "POST",
       headers: {
-        "content-type": "application/json",
+        "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({name, frequency}),
@@ -198,6 +198,47 @@ function CreateHabitForm({ onCreated }: { onCreated: () => void}) {
   );
 }
 
+function RegisterForm() {
+  const[username, setUsername] = useState("");
+  const[password, setPassword] = useState("");
+
+  async function handleSubmit(e: React.SubmitEvent) {
+    e.preventDefault();
+
+    const response = await fetch("http://127.0.0.1:8000/users/register", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({username, password})
+    });
+
+    if (!response.ok) {
+      console.log("Failed:", response.status);
+      return;
+    }
+
+    setUsername("");
+    setPassword("");
+  }
+
+  return(
+    <form onSubmit={handleSubmit}>
+      <input 
+        type="text"
+        value={username}
+        onChange={(e) => setUsername(e.target.value)}
+      />
+      <input
+        type="password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+      />
+      <button type="submit">Register</button>
+    </form>
+  )
+}
+
 function App() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
@@ -214,6 +255,7 @@ function App() {
       />
       <LoginForm onLogin={handleLogin}/>
       <CreateHabitForm onCreated={handleLogin}/>
+      <RegisterForm />
     </div>
   )
 }
