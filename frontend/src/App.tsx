@@ -14,6 +14,37 @@ interface HabitViewerProps {
   onHabitChanged: () => void;
 }
 
+function HabitGroup({
+  title,
+  habits,
+  onDelete,
+}: {
+  title: string;
+  habits: Habit[];
+  onDelete: (id: number) => void;
+}) {
+  if (habits.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="habit-group">
+      <h3 className="habit-group-title">{title}</h3>
+      <div className="habit-list">
+        {habits.map((habit) => (
+          <div className="habit-card" key={habit.id}>
+            <div className="habit-card-main">
+              <p>{habit.name}</p>
+              <span className="badge">{habit.frequency}</span>
+            </div>
+            <button className="btn btn-danger" onClick={() => onDelete(habit.id)}>Delete</button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function HabitViewer({refreshTrigger, onHabitChanged}: HabitViewerProps){
   const [habits, setHabits] = useState<Habit[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -77,17 +108,17 @@ function HabitViewer({refreshTrigger, onHabitChanged}: HabitViewerProps){
     return <p className="status-message">No habits yet — add one below.</p>;
   }
 
+  const dailyHabits = habits.filter((habit) => habit.frequency === "daily");
+  const weeklyHabits = habits.filter((habit) => habit.frequency === "weekly");
+  const monthlyHabits = habits.filter((habit) => habit.frequency === "monthly");
+  const yearlyHabits = habits.filter((habit) => habit.frequency === "yearly");
+
   return(
-    <div className="habit-list">
-      {habits.map((habit) => (
-        <div className="habit-card" key={habit.id}>
-          <div className="habit-card-main">
-            <p>{habit.name}</p>
-            <span className="badge">{habit.frequency}</span>
-          </div>
-          <button className="btn btn-danger" onClick={()=>handleDelete(habit.id)}>Delete</button>
-        </div>
-      ))}
+    <div className="habit-groups">
+      <HabitGroup title="Daily" habits={dailyHabits} onDelete={handleDelete} />
+      <HabitGroup title="Weekly" habits={weeklyHabits} onDelete={handleDelete} />
+      <HabitGroup title="Monthly" habits={monthlyHabits} onDelete={handleDelete} />
+      <HabitGroup title="Yearly" habits={yearlyHabits} onDelete={handleDelete} />
     </div>
   )
 }

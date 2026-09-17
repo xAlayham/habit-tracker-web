@@ -143,12 +143,26 @@
   gap: 28px;
 }
 
+.habit-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+}
+
+.habit-group-title {
+  margin: 0 0 10px;
+  font-size: 16px;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
 .habit-list {
   display: flex;
   flex-direction: column;
   gap: 10px;
   width: 100%;
-  margin-top: 8px;
 }
 
 .habit-card {
