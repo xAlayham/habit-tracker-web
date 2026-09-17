@@ -197,12 +197,14 @@ function LoginForm({onLogin}: LoginFormProps) {
           placeholder="Username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
+          required
         />
         <input
           type="password"
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          required
         />
         <button className="btn btn-primary" type="submit">Login</button>
       </form>
@@ -249,8 +251,9 @@ function CreateHabitForm({ onCreated }: { onCreated: () => void}) {
           placeholder="Habit name"
           value={name}
           onChange={(e) => setName(e.target.value)}
+          required
         />
-        <select value={frequency} onChange={(e)=>setFrequency(e.target.value)}>
+        <select value={frequency} onChange={(e)=>setFrequency(e.target.value)} required>
           <option value="" disabled>Frequency</option>
           <option value="daily">Daily</option>
           <option value="weekly">Weekly</option>
@@ -301,15 +304,19 @@ function RegisterForm() {
         {success && <p className="form-success">Account created — you can log in now.</p>}
         <input
           type="text"
-          placeholder="Username"
+          placeholder="Username (min. 3 characters)"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
+          required
+          minLength={3}
         />
         <input
           type="password"
-          placeholder="Password"
+          placeholder="Password (min. 8 characters)"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          required
+          minLength={8}
         />
         <button className="btn btn-primary" type="submit">Register</button>
       </form>
