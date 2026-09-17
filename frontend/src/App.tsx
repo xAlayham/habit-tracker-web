@@ -2,6 +2,8 @@ import React, { useState, useEffect} from "react";
 import { BrowserRouter, Routes, Route, Link, Navigate, useNavigate } from "react-router-dom";
 import "./App.css";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 interface Habit {
   name: string
   id: number
@@ -66,7 +68,7 @@ function HabitViewer({refreshTrigger, onHabitChanged}: HabitViewerProps){
   useEffect(() => {
     async function loadHabits() {
       const token = localStorage.getItem("access_token")
-      const response = await fetch("http://127.0.0.1:8000/habits", {
+      const response = await fetch(`${API_URL}/habits`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -103,7 +105,7 @@ function HabitViewer({refreshTrigger, onHabitChanged}: HabitViewerProps){
     }
 
     const token = localStorage.getItem("access_token");
-    const response = await fetch(`http://127.0.0.1:8000/habits/${id}`, {
+    const response = await fetch(`${API_URL}/habits/${id}`, {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${token}`, 
@@ -120,7 +122,7 @@ function HabitViewer({refreshTrigger, onHabitChanged}: HabitViewerProps){
 
   async function handleComplete(id: number) {
     const token = localStorage.getItem("access_token");
-    const response = await fetch(`http://127.0.0.1:8000/habits/${id}/complete`, {
+    const response = await fetch(`${API_URL}/habits/${id}/complete`, {
       method: "PATCH",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -169,7 +171,7 @@ function LoginForm({onLogin}: LoginFormProps) {
     setError(null);
 
     const body = new URLSearchParams({username, password})
-    const response = await fetch("http://127.0.0.1:8000/users/login", {
+    const response = await fetch(`${API_URL}/users/login`, {
       method: "POST",
       body: body,
     });
@@ -224,7 +226,7 @@ function CreateHabitForm({ onCreated }: { onCreated: () => void}) {
 
     const token = localStorage.getItem("access_token");
 
-    const response = await fetch("http://127.0.0.1:8000/habits", {
+    const response = await fetch(`${API_URL}/habits`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -277,7 +279,7 @@ function RegisterForm() {
     setError(null);
     setSuccess(false);
 
-    const response = await fetch("http://127.0.0.1:8000/users/register", {
+    const response = await fetch(`${API_URL}/users/register`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
