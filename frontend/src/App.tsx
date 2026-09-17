@@ -1,30 +1,6 @@
 import React, { useState, useEffect} from "react";
-import { BrowserRouter, Routes, Route, Link, Navigate } from "react-router-dom";
-
-interface HabitCardProps {
-  name: string;
-  streak: number;
-}
-
-function HabitCard({name, streak}: HabitCardProps) {
-  return <p>{name} : {streak} day streak</p>
-}
-
-function HabitList() {
-  const habits: HabitCardProps[] = [
-    {name: "Nap", streak: 6},
-    {name: "Read", streak: 23},
-    {name: "Exercise", streak: 43}
-  ]
-
-  return (
-    <div>
-      {habits.map((habit) => ( 
-        <HabitCard key={habit.name} name={habit.name} streak={habit.streak}/>
-      ))}
-    </div>
-  )
-}
+import { BrowserRouter, Routes, Route, Link, Navigate, useNavigate } from "react-router-dom";
+import "./App.css";
 
 interface Habit {
   name: string
@@ -68,11 +44,11 @@ function HabitViewer({refreshTrigger, onHabitChanged}: HabitViewerProps){
   }, [refreshTrigger]);
 
   if (error !== null) {
-    return <p>{error}</p>;
+    return <p className="status-message">{error}</p>;
   }
 
   if (habits === null) {
-    return <p>Loading...</p>;
+    return <p className="status-message">Loading...</p>;
   }
 
   async function handleDelete(id: number) {
@@ -98,11 +74,11 @@ function HabitViewer({refreshTrigger, onHabitChanged}: HabitViewerProps){
   }
 
   return(
-    <div>
+    <div className="habit-list">
       {habits.map((habit) => (
-        <div key={habit.id}>
+        <div className="habit-card" key={habit.id}>
           <p>{habit.name}</p>
-          <button onClick={()=>handleDelete(habit.id)}>Delete</button>
+          <button className="btn btn-danger" onClick={()=>handleDelete(habit.id)}>Delete</button>
         </div>
       ))}
     </div>
@@ -116,6 +92,7 @@ interface LoginFormProps {
 function LoginForm({onLogin}: LoginFormProps) {
   const[username, setUsername] = useState("")
   const[password, setPassword] = useState("")
+  const navigate = useNavigate();
 
   async function handleSubmit(e: React.SubmitEvent) {
     e.preventDefault();
@@ -135,22 +112,31 @@ function LoginForm({onLogin}: LoginFormProps) {
     localStorage.setItem("access_token", data.access_token)
 
     onLogin();
+    navigate("/");
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <input
-        type="text"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-      />
-      <input
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
-      <button type="submit">Login</button>
-    </form>
+    <div className="card">
+      <h2>Login</h2>
+      <form className="form" onSubmit={handleSubmit}>
+        <input
+          type="text"
+          placeholder="Username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <button className="btn btn-primary" type="submit">Login</button>
+      </form>
+      <p className="switch-link">
+        No account? <Link to="/register">Register</Link>
+      </p>
+    </div>
   );
 }
 
@@ -182,20 +168,25 @@ function CreateHabitForm({ onCreated }: { onCreated: () => void}) {
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <input
-        type="text"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-      />
-      <select value={frequency} onChange={(e)=>setFrequency(e.target.value)}>
-        <option value="daily">Daily</option>
-        <option value="weekly">Weekly</option>
-        <option value="monthly">Monthly</option>
-        <option value="yearly">Yearly</option>
-      </select>
-      <button type="submit">Create Habit</button>
-    </form>
+    <div className="card">
+      <h2>New habit</h2>
+      <form className="form" onSubmit={handleSubmit}>
+        <input
+          type="text"
+          placeholder="Habit name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
+        <select value={frequency} onChange={(e)=>setFrequency(e.target.value)}>
+          <option value="" disabled>Frequency</option>
+          <option value="daily">Daily</option>
+          <option value="weekly">Weekly</option>
+          <option value="monthly">Monthly</option>
+          <option value="yearly">Yearly</option>
+        </select>
+        <button className="btn btn-primary" type="submit">Create Habit</button>
+      </form>
+    </div>
   );
 }
 
@@ -224,30 +215,46 @@ function RegisterForm() {
   }
 
   return(
-    <form onSubmit={handleSubmit}>
-      <input 
-        type="text"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-      />
-      <input
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
-      <button type="submit">Register</button>
-    </form>
+    <div className="card">
+      <h2>Register</h2>
+      <form className="form" onSubmit={handleSubmit}>
+        <input
+          type="text"
+          placeholder="Username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <button className="btn btn-primary" type="submit">Register</button>
+      </form>
+      <p className="switch-link">
+        Already have an account? <Link to="/login">Login</Link>
+      </p>
+    </div>
   )
 }
 
-function Auth({ onLogin }: { onLogin: ()=> void}) {
-  return(
-     <div>
-      <h1>Authorization page</h1>
+function LoginPage({ onLogin }: { onLogin: () => void }) {
+  return (
+    <div className="page">
+      <h1 className="page-title">Welcome back</h1>
       <LoginForm onLogin={onLogin} />
+    </div>
+  );
+}
+
+function RegisterPage() {
+  return (
+    <div className="page">
+      <h1 className="page-title">Create an account</h1>
       <RegisterForm />
-     </div>
-  )
+    </div>
+  );
 }
 
 function Dashboard({
@@ -257,13 +264,15 @@ function Dashboard({
   onHabitChanged: () => void;
 }) {
   return(
-    <div>
-      <h1>Dashboard page</h1>
-      <HabitViewer
-        refreshTrigger={refreshTrigger}
-        onHabitChanged={onHabitChanged}
-      />
-      <CreateHabitForm onCreated={onHabitChanged} />
+    <div className="page">
+      <div className="dashboard-page">
+        <h1 className="page-title">Your habits</h1>
+        <HabitViewer
+          refreshTrigger={refreshTrigger}
+          onHabitChanged={onHabitChanged}
+        />
+        <CreateHabitForm onCreated={onHabitChanged} />
+      </div>
     </div>
   )
 }
@@ -272,7 +281,7 @@ function RequireLogin({children}: {children: React.ReactNode}) {
   const isLogin = localStorage.getItem("access_token")
 
   if(isLogin === null) {
-    return <Navigate to="/auth" />;
+    return <Navigate to="/login" />;
   }
 
   return children;
@@ -287,10 +296,11 @@ function App() {
  
   return (
     <BrowserRouter>
-      <div>
-        <nav>
+      <div className="app">
+        <nav className="nav">
           <Link to ="/">Dashboard</Link>
-          <Link to="/auth">Auth</Link>
+          <Link to="/login">Login</Link>
+          <Link to="/register">Register</Link>
         </nav>
 
         <Routes>
@@ -307,8 +317,13 @@ function App() {
           />
 
           <Route
-            path="/auth"
-            element={<Auth onLogin={handleLogin} />}
+            path="/login"
+            element={<LoginPage onLogin={handleLogin} />}
+          />
+
+          <Route
+            path="/register"
+            element={<RegisterPage />}
           />
         </Routes>
       </div>
