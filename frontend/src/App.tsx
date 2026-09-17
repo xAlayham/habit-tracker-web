@@ -161,10 +161,12 @@ interface LoginFormProps {
 function LoginForm({onLogin}: LoginFormProps) {
   const[username, setUsername] = useState("")
   const[password, setPassword] = useState("")
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   async function handleSubmit(e: React.SubmitEvent) {
     e.preventDefault();
+    setError(null);
 
     const body = new URLSearchParams({username, password})
     const response = await fetch("http://127.0.0.1:8000/users/login", {
@@ -173,7 +175,8 @@ function LoginForm({onLogin}: LoginFormProps) {
     });
 
     if (!response.ok) {
-      console.log("Failed to login, status: ", response.status);
+      const data = await response.json().catch(() => null);
+      setError(data?.detail ?? "Something went wrong. Please try again.");
       return;
     }
 
@@ -188,6 +191,7 @@ function LoginForm({onLogin}: LoginFormProps) {
     <div className="card">
       <h2>Login</h2>
       <form className="form" onSubmit={handleSubmit}>
+        {error !== null && <p className="form-error">{error}</p>}
         <input
           type="text"
           placeholder="Username"
@@ -262,9 +266,13 @@ function CreateHabitForm({ onCreated }: { onCreated: () => void}) {
 function RegisterForm() {
   const[username, setUsername] = useState("");
   const[password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
 
   async function handleSubmit(e: React.SubmitEvent) {
     e.preventDefault();
+    setError(null);
+    setSuccess(false);
 
     const response = await fetch("http://127.0.0.1:8000/users/register", {
       method: "POST",
@@ -275,18 +283,22 @@ function RegisterForm() {
     });
 
     if (!response.ok) {
-      console.log("Failed:", response.status);
+      const data = await response.json().catch(() => null);
+      setError(data?.detail ?? "Something went wrong. Please try again.");
       return;
     }
 
     setUsername("");
     setPassword("");
+    setSuccess(true);
   }
 
   return(
     <div className="card">
       <h2>Register</h2>
       <form className="form" onSubmit={handleSubmit}>
+        {error !== null && <p className="form-error">{error}</p>}
+        {success && <p className="form-success">Account created — you can log in now.</p>}
         <input
           type="text"
           placeholder="Username"

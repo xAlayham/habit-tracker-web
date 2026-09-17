@@ -59,6 +59,24 @@
   gap: 12px;
 }
 
+.form-error {
+  font-size: 14px;
+  color: var(--danger);
+  background: var(--danger-bg);
+  border: 1px solid var(--danger);
+  border-radius: 4px;
+  padding: 8px 12px;
+}
+
+.form-success {
+  font-size: 14px;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  border-radius: 4px;
+  padding: 8px 12px;
+}
+
 .form input,
 .form select {
   font: inherit;
