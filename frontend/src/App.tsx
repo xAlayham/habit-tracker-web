@@ -1,4 +1,5 @@
 import React, { useState, useEffect} from "react";
+import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 
 interface HabitCardProps {
   name: string;
@@ -239,6 +240,34 @@ function RegisterForm() {
   )
 }
 
+function Auth({ onLogin }: { onLogin: ()=> void}) {
+  return(
+     <div>
+      <h1>Authorization page</h1>
+      <LoginForm onLogin={onLogin} />
+      <RegisterForm />
+     </div>
+  )
+}
+
+function Dashboard({
+  refreshTrigger, onHabitChanged,
+}: {
+  refreshTrigger: number,
+  onHabitChanged: () => void;
+}) {
+  return(
+    <div>
+      <h1>Dashboard page</h1>
+      <HabitViewer
+        refreshTrigger={refreshTrigger}
+        onHabitChanged={onHabitChanged}
+      />
+      <CreateHabitForm onCreated={onHabitChanged} />
+    </div>
+  )
+}
+
 function App() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
@@ -247,16 +276,31 @@ function App() {
   }
  
   return (
-    <div>
-      <HabitList />
-      <HabitViewer 
-      refreshTrigger={refreshTrigger}
-      onHabitChanged={handleLogin}
-      />
-      <LoginForm onLogin={handleLogin}/>
-      <CreateHabitForm onCreated={handleLogin}/>
-      <RegisterForm />
-    </div>
+    <BrowserRouter>
+      <div>
+        <nav>
+          <Link to ="/">Dashboard</Link>
+          <Link to="/auth">Auth</Link>
+        </nav>
+
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <Dashboard
+                refreshTrigger={refreshTrigger}
+                onHabitChanged={handleLogin}
+              />
+            }
+          />
+
+          <Route
+            path="/auth"
+            element={<Auth onLogin={handleLogin} />}
+          />
+        </Routes>
+      </div>
+    </BrowserRouter>
   )
 }
 
