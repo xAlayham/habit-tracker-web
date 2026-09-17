@@ -48,7 +48,7 @@ function HabitGroup({
               <p>{habit.name}</p>
               <span className="badge">{habit.frequency}</span>
               {habit.streak_count > 0 && (
-                <span className="badge badge-streak">🔥 {habit.streak_count}</span>
+                <span className="badge badge-streak">streak {habit.streak_count}</span>
               )}
             </div>
             <button className="btn btn-danger" onClick={() => onDelete(habit.id)}>Delete</button>
