@@ -73,11 +73,18 @@ function HabitViewer({refreshTrigger, onHabitChanged}: HabitViewerProps){
     onHabitChanged();
   }
 
+  if (habits.length === 0) {
+    return <p className="status-message">No habits yet — add one below.</p>;
+  }
+
   return(
     <div className="habit-list">
       {habits.map((habit) => (
         <div className="habit-card" key={habit.id}>
-          <p>{habit.name}</p>
+          <div className="habit-card-main">
+            <p>{habit.name}</p>
+            <span className="badge">{habit.frequency}</span>
+          </div>
           <button className="btn btn-danger" onClick={()=>handleDelete(habit.id)}>Delete</button>
         </div>
       ))}
@@ -239,6 +246,34 @@ function RegisterForm() {
   )
 }
 
+function LogoutButton() {
+  const navigate = useNavigate();
+
+  function handleLogout() {
+    localStorage.removeItem("access_token");
+    navigate("/login");
+  }
+
+  return (
+    <button className="btn btn-logout" onClick={handleLogout}>
+      Logout
+    </button>
+  );
+}
+
+function NewHabitDropdown({ onCreated }: { onCreated: () => void }) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="dropdown">
+      <button className="btn btn-primary" onClick={() => setIsOpen(!isOpen)}>
+        {isOpen ? "Close" : "+ New Habit"}
+      </button>
+      {isOpen && <CreateHabitForm onCreated={onCreated} />}
+    </div>
+  );
+}
+
 function LoginPage({ onLogin }: { onLogin: () => void }) {
   return (
     <div className="page">
@@ -267,11 +302,11 @@ function Dashboard({
     <div className="page">
       <div className="dashboard-page">
         <h1 className="page-title">Your habits</h1>
+        <NewHabitDropdown onCreated={onHabitChanged} />
         <HabitViewer
           refreshTrigger={refreshTrigger}
           onHabitChanged={onHabitChanged}
         />
-        <CreateHabitForm onCreated={onHabitChanged} />
       </div>
     </div>
   )
@@ -301,6 +336,7 @@ function App() {
           <Link to ="/">Dashboard</Link>
           <Link to="/login">Login</Link>
           <Link to="/register">Register</Link>
+          <LogoutButton />
         </nav>
 
         <Routes>

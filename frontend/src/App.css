@@ -101,6 +101,22 @@
   font-size: 14px;
 }
 
+.btn-logout {
+  color: var(--text);
+  background: transparent;
+  border: 1px solid var(--border);
+  margin-left: auto;
+  padding: 8px 14px;
+}
+
+.dropdown {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+}
+
 .switch-link {
   margin: 16px 0 0;
   font-size: 14px;
@@ -145,9 +161,25 @@
   padding: 14px 18px;
 }
 
+.habit-card-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .habit-card p {
   font-weight: 500;
   color: var(--text-h);
+}
+
+.badge {
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: capitalize;
+  color: var(--accent);
+  background: var(--accent-bg);
+  padding: 3px 9px;
+  border-radius: 999px;
 }
 
 .status-message {
