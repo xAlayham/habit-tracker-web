@@ -1,5 +1,5 @@
 import React, { useState, useEffect} from "react";
-import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Link, Navigate } from "react-router-dom";
 
 interface HabitCardProps {
   name: string;
@@ -268,6 +268,16 @@ function Dashboard({
   )
 }
 
+function RequireLogin({children}: {children: React.ReactNode}) {
+  const isLogin = localStorage.getItem("access_token")
+
+  if(isLogin === null) {
+    return <Navigate to="/auth" />;
+  }
+
+  return children;
+} 
+
 function App() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
@@ -287,10 +297,12 @@ function App() {
           <Route
             path="/"
             element={
-              <Dashboard
+              <RequireLogin>
+                <Dashboard
                 refreshTrigger={refreshTrigger}
                 onHabitChanged={handleLogin}
-              />
+                />
+              </RequireLogin>
             }
           />
 
