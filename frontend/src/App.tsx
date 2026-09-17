@@ -7,6 +7,8 @@ interface Habit {
   id: number
   frequency: string
   completed: boolean
+  streak_count: number
+  last_completed_date: string | null
 }
 
 interface HabitViewerProps {
@@ -18,10 +20,12 @@ function HabitGroup({
   title,
   habits,
   onDelete,
+  onComplete,
 }: {
   title: string;
   habits: Habit[];
   onDelete: (id: number) => void;
+  onComplete: (id: number) => void;
 }) {
   if (habits.length === 0) {
     return null;
@@ -32,10 +36,20 @@ function HabitGroup({
       <h3 className="habit-group-title">{title}</h3>
       <div className="habit-list">
         {habits.map((habit) => (
-          <div className="habit-card" key={habit.id}>
+          <div className={habit.completed ? "habit-card habit-card-done" : "habit-card"} key={habit.id}>
             <div className="habit-card-main">
+              <button
+                className={habit.completed ? "check-btn check-btn-done" : "check-btn"}
+                onClick={() => onComplete(habit.id)}
+                aria-label="Toggle complete"
+              >
+                {habit.completed ? "✓" : ""}
+              </button>
               <p>{habit.name}</p>
               <span className="badge">{habit.frequency}</span>
+              {habit.streak_count > 0 && (
+                <span className="badge badge-streak">🔥 {habit.streak_count}</span>
+              )}
             </div>
             <button className="btn btn-danger" onClick={() => onDelete(habit.id)}>Delete</button>
           </div>
@@ -104,6 +118,23 @@ function HabitViewer({refreshTrigger, onHabitChanged}: HabitViewerProps){
     onHabitChanged();
   }
 
+  async function handleComplete(id: number) {
+    const token = localStorage.getItem("access_token");
+    const response = await fetch(`http://127.0.0.1:8000/habits/${id}/complete`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      console.log("Failed to update completion, status:", response.status);
+      return;
+    }
+
+    onHabitChanged();
+  }
+
   if (habits.length === 0) {
     return <p className="status-message">No habits yet — add one below.</p>;
   }
@@ -115,10 +146,10 @@ function HabitViewer({refreshTrigger, onHabitChanged}: HabitViewerProps){
 
   return(
     <div className="habit-groups">
-      <HabitGroup title="Daily" habits={dailyHabits} onDelete={handleDelete} />
-      <HabitGroup title="Weekly" habits={weeklyHabits} onDelete={handleDelete} />
-      <HabitGroup title="Monthly" habits={monthlyHabits} onDelete={handleDelete} />
-      <HabitGroup title="Yearly" habits={yearlyHabits} onDelete={handleDelete} />
+      <HabitGroup title="Daily" habits={dailyHabits} onDelete={handleDelete} onComplete={handleComplete} />
+      <HabitGroup title="Weekly" habits={weeklyHabits} onDelete={handleDelete} onComplete={handleComplete} />
+      <HabitGroup title="Monthly" habits={monthlyHabits} onDelete={handleDelete} onComplete={handleComplete} />
+      <HabitGroup title="Yearly" habits={yearlyHabits} onDelete={handleDelete} onComplete={handleComplete} />
     </div>
   )
 }
