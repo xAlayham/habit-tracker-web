@@ -4,6 +4,12 @@ A React + TypeScript frontend for tracking personal habits. Register, log in, an
 
 **Live demo:** https://habit-tracker-web-alpha.vercel.app
 
+## Screenshots
+
+|                     Dashboard                      |                    Login                     |
+| :------------------------------------------------: | :------------------------------------------: |
+| ![Dashboard](docs/screenshots/dashboard.png)        | ![Login](docs/screenshots/login.png)         |
+
 ## Features
 
 - Register / log in with JWT auth, token persisted in `localStorage`
