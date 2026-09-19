@@ -6,6 +6,13 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 type Frequency = "daily" | "weekly" | "monthly" | "yearly";
 
+// FastAPI returns {detail: "..."} for raised HTTPExceptions but {detail: [...]}
+// for 422 validation errors — rendering that array straight into JSX would crash,
+// so anything that isn't a plain string falls back to a generic message.
+function apiErrorMessage(detail: unknown, fallback: string): string {
+  return typeof detail === "string" ? detail : fallback;
+}
+
 interface Habit {
   name: string
   id: number
@@ -70,39 +77,52 @@ function HabitGroup({
 
 function HabitViewer({refreshTrigger, onHabitChanged}: HabitViewerProps){
   const [habits, setHabits] = useState<Habit[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  // loadError replaces the whole list (nothing to show); actionError is a banner
+  // above a list that's still perfectly valid, e.g. when one delete failed.
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     async function loadHabits() {
       const token = localStorage.getItem("access_token")
-      const response = await fetch(`${API_URL}/habits`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
 
-      if(response.status === 401) {
-        setError("You're not logged in.");
-        return;
+      try {
+        const response = await fetch(`${API_URL}/habits`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if(response.status === 401) {
+          // token is missing or expired — drop it and send them back to login
+          localStorage.removeItem("access_token");
+          navigate("/login");
+          return;
+        }
+
+        if(!response.ok) {
+          setLoadError("Couldn't load your habits. Please try again.");
+          return;
+        }
+
+        const data = await response.json();
+        setHabits(data)
+      } catch {
+        setLoadError(
+          "Can't reach the server. It may be waking up from sleep — wait a few seconds and refresh."
+        );
       }
-
-      if(!response.ok) {
-        setError("Something went wrong.");
-        return;
-      }
-
-      const data = await  response.json();
-      setHabits(data)
     }
     loadHabits();
-  }, [refreshTrigger]);
+  }, [refreshTrigger, navigate]);
 
-  if (error !== null) {
-    return <p className="status-message">{error}</p>;
+  if (loadError !== null) {
+    return <p className="status-message">{loadError}</p>;
   }
 
   if (habits === null) {
-    return <p className="status-message">Loading...</p>;
+    return <p className="status-message">Loading…</p>;
   }
 
   async function handleDelete(id: number) {
@@ -111,41 +131,53 @@ function HabitViewer({refreshTrigger, onHabitChanged}: HabitViewerProps){
       return;
     }
 
+    setActionError(null);
     const token = localStorage.getItem("access_token");
-    const response = await fetch(`${API_URL}/habits/${id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`, 
-      },
-    });
 
-    if (!response.ok) {
-      console.log("Failed to delete, status:", response.status)
-      return;
+    try {
+      const response = await fetch(`${API_URL}/habits/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        setActionError("Couldn't delete that habit. Please try again.");
+        return;
+      }
+
+      onHabitChanged();
+    } catch {
+      setActionError("Can't reach the server. Please try again in a moment.");
     }
-
-    onHabitChanged();
   }
 
   async function handleComplete(id: number) {
+    setActionError(null);
     const token = localStorage.getItem("access_token");
-    const response = await fetch(`${API_URL}/habits/${id}/complete`, {
-      method: "PATCH",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
 
-    if (!response.ok) {
-      console.log("Failed to update completion, status:", response.status);
-      return;
+    try {
+      const response = await fetch(`${API_URL}/habits/${id}/complete`, {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        setActionError("Couldn't update that habit. Please try again.");
+        return;
+      }
+
+      onHabitChanged();
+    } catch {
+      setActionError("Can't reach the server. Please try again in a moment.");
     }
-
-    onHabitChanged();
   }
 
   if (habits.length === 0) {
-    return <p className="status-message">No habits yet — add one below.</p>;
+    return <p className="status-message">No habits yet — add one with the button above.</p>;
   }
 
   const dailyHabits = habits.filter((habit) => habit.frequency === "daily");
@@ -155,6 +187,7 @@ function HabitViewer({refreshTrigger, onHabitChanged}: HabitViewerProps){
 
   return(
     <div className="habit-groups">
+      {actionError !== null && <p className="form-error">{actionError}</p>}
       <HabitGroup title="Daily" habits={dailyHabits} onDelete={handleDelete} onComplete={handleComplete} />
       <HabitGroup title="Weekly" habits={weeklyHabits} onDelete={handleDelete} onComplete={handleComplete} />
       <HabitGroup title="Monthly" habits={monthlyHabits} onDelete={handleDelete} onComplete={handleComplete} />
@@ -178,22 +211,29 @@ function LoginForm({onLogin}: LoginFormProps) {
     setError(null);
 
     const body = new URLSearchParams({username, password})
-    const response = await fetch(`${API_URL}/users/login`, {
-      method: "POST",
-      body: body,
-    });
 
-    if (!response.ok) {
-      const data = await response.json().catch(() => null);
-      setError(data?.detail ?? "Something went wrong. Please try again.");
-      return;
+    try {
+      const response = await fetch(`${API_URL}/users/login`, {
+        method: "POST",
+        body: body,
+      });
+
+      if (!response.ok) {
+        const failure = await response.json().catch(() => null);
+        setError(apiErrorMessage(failure?.detail, "Couldn't log in. Please try again."));
+        return;
+      }
+
+      const data = await response.json();
+      localStorage.setItem("access_token", data.access_token)
+
+      onLogin();
+      navigate("/");
+    } catch {
+      setError(
+        "Can't reach the server. It may be waking up from sleep — wait a few seconds and try again."
+      );
     }
-
-    const data = await response.json();
-    localStorage.setItem("access_token", data.access_token)
-
-    onLogin();
-    navigate("/");
   }
 
   return (
@@ -233,34 +273,42 @@ function LoginForm({onLogin}: LoginFormProps) {
 function CreateHabitForm({ onCreated }: { onCreated: () => void}) {
   const[name, setName] = useState("");
   const[frequency, setFrequency] = useState<Frequency | "">("");
+  const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(e: React.SubmitEvent) {
     e.preventDefault();
+    setError(null);
 
     const token = localStorage.getItem("access_token");
 
-    const response = await fetch(`${API_URL}/habits`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({name, frequency}),
-    });
+    try {
+      const response = await fetch(`${API_URL}/habits`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({name, frequency}),
+      });
 
-    if (!response.ok) {
-      console.log("Failed to create habit, status:", response.status)
-      return;
+      if (!response.ok) {
+        const failure = await response.json().catch(() => null);
+        setError(apiErrorMessage(failure?.detail, "Couldn't create that habit. Please try again."));
+        return;
+      }
+
+      setName("");
+      onCreated();
+    } catch {
+      setError("Can't reach the server. Please try again in a moment.");
     }
-
-    setName("");
-    onCreated();
   }
 
   return (
     <div className="card">
       <h2>New habit</h2>
       <form className="form" onSubmit={handleSubmit}>
+        {error !== null && <p className="form-error">{error}</p>}
         <div className="field">
           <label htmlFor="habit-name">Habit name</label>
           <input
@@ -304,23 +352,29 @@ function RegisterForm() {
     setError(null);
     setSuccess(false);
 
-    const response = await fetch(`${API_URL}/users/register`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({username, password})
-    });
+    try {
+      const response = await fetch(`${API_URL}/users/register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({username, password})
+      });
 
-    if (!response.ok) {
-      const data = await response.json().catch(() => null);
-      setError(data?.detail ?? "Something went wrong. Please try again.");
-      return;
+      if (!response.ok) {
+        const failure = await response.json().catch(() => null);
+        setError(apiErrorMessage(failure?.detail, "Couldn't create your account. Please try again."));
+        return;
+      }
+
+      setUsername("");
+      setPassword("");
+      setSuccess(true);
+    } catch {
+      setError(
+        "Can't reach the server. It may be waking up from sleep — wait a few seconds and try again."
+      );
     }
-
-    setUsername("");
-    setPassword("");
-    setSuccess(true);
   }
 
   return(
