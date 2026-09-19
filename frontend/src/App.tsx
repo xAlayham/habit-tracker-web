@@ -4,10 +4,12 @@ import "./App.css";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
+type Frequency = "daily" | "weekly" | "monthly" | "yearly";
+
 interface Habit {
   name: string
   id: number
-  frequency: string
+  frequency: Frequency
   completed: boolean
   streak_count: number
   last_completed_date: string | null
@@ -43,7 +45,12 @@ function HabitGroup({
               <button
                 className={habit.completed ? "check-btn check-btn-done" : "check-btn"}
                 onClick={() => onComplete(habit.id)}
-                aria-label="Toggle complete"
+                aria-pressed={habit.completed}
+                aria-label={
+                  habit.completed
+                    ? `Mark ${habit.name} as not complete`
+                    : `Mark ${habit.name} as complete`
+                }
               >
                 {habit.completed ? "✓" : ""}
               </button>
@@ -194,20 +201,26 @@ function LoginForm({onLogin}: LoginFormProps) {
       <h2>Login</h2>
       <form className="form" onSubmit={handleSubmit}>
         {error !== null && <p className="form-error">{error}</p>}
-        <input
-          type="text"
-          placeholder="Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
+        <div className="field">
+          <label htmlFor="login-username">Username</label>
+          <input
+            id="login-username"
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+          />
+        </div>
+        <div className="field">
+          <label htmlFor="login-password">Password</label>
+          <input
+            id="login-password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </div>
         <button className="btn btn-primary" type="submit">Login</button>
       </form>
       <p className="switch-link">
@@ -219,7 +232,7 @@ function LoginForm({onLogin}: LoginFormProps) {
 
 function CreateHabitForm({ onCreated }: { onCreated: () => void}) {
   const[name, setName] = useState("");
-  const[frequency, setFrequency] = useState("");
+  const[frequency, setFrequency] = useState<Frequency | "">("");
 
   async function handleSubmit(e: React.SubmitEvent) {
     e.preventDefault();
@@ -248,20 +261,32 @@ function CreateHabitForm({ onCreated }: { onCreated: () => void}) {
     <div className="card">
       <h2>New habit</h2>
       <form className="form" onSubmit={handleSubmit}>
-        <input
-          type="text"
-          placeholder="Habit name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-        />
-        <select value={frequency} onChange={(e)=>setFrequency(e.target.value)} required>
-          <option value="" disabled>Frequency</option>
-          <option value="daily">Daily</option>
-          <option value="weekly">Weekly</option>
-          <option value="monthly">Monthly</option>
-          <option value="yearly">Yearly</option>
-        </select>
+        <div className="field">
+          <label htmlFor="habit-name">Habit name</label>
+          <input
+            id="habit-name"
+            type="text"
+            placeholder="e.g. Read for 20 minutes"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
+        </div>
+        <div className="field">
+          <label htmlFor="habit-frequency">Frequency</label>
+          <select
+            id="habit-frequency"
+            value={frequency}
+            onChange={(e) => setFrequency(e.target.value as Frequency)}
+            required
+          >
+            <option value="" disabled>Select a frequency</option>
+            <option value="daily">Daily</option>
+            <option value="weekly">Weekly</option>
+            <option value="monthly">Monthly</option>
+            <option value="yearly">Yearly</option>
+          </select>
+        </div>
         <button className="btn btn-primary" type="submit">Create Habit</button>
       </form>
     </div>
@@ -304,22 +329,30 @@ function RegisterForm() {
       <form className="form" onSubmit={handleSubmit}>
         {error !== null && <p className="form-error">{error}</p>}
         {success && <p className="form-success">Account created — you can log in now.</p>}
-        <input
-          type="text"
-          placeholder="Username (min. 3 characters)"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          required
-          minLength={3}
-        />
-        <input
-          type="password"
-          placeholder="Password (min. 8 characters)"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          minLength={8}
-        />
+        <div className="field">
+          <label htmlFor="register-username">Username</label>
+          <input
+            id="register-username"
+            type="text"
+            placeholder="At least 3 characters"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+            minLength={3}
+          />
+        </div>
+        <div className="field">
+          <label htmlFor="register-password">Password</label>
+          <input
+            id="register-password"
+            type="password"
+            placeholder="At least 8 characters"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            minLength={8}
+          />
+        </div>
         <button className="btn btn-primary" type="submit">Register</button>
       </form>
       <p className="switch-link">
@@ -408,7 +441,9 @@ function RequireLogin({children}: {children: React.ReactNode}) {
 function App() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  function handleLogin() {
+  // Bumping this is what makes HabitViewer refetch — called after a login,
+  // a habit is created, completed, or deleted.
+  function handleRefresh() {
     setRefreshTrigger(refreshTrigger + 1);
   }
  
@@ -429,7 +464,7 @@ function App() {
               <RequireLogin>
                 <Dashboard
                 refreshTrigger={refreshTrigger}
-                onHabitChanged={handleLogin}
+                onHabitChanged={handleRefresh}
                 />
               </RequireLogin>
             }
@@ -437,7 +472,7 @@ function App() {
 
           <Route
             path="/login"
-            element={<LoginPage onLogin={handleLogin} />}
+            element={<LoginPage onLogin={handleRefresh} />}
           />
 
           <Route

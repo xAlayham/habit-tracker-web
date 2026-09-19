@@ -59,3 +59,12 @@ Outputs a static build to `frontend/dist`. Set `VITE_API_URL` to your deployed A
 ## Deployment
 
 Deployed on Vercel (frontend) and Render (API). Root directory on Vercel is set to `frontend`, since the Vite project lives in a subfolder of this repo rather than at the repo root.
+
+## Known limitations
+
+Deliberate trade-offs and rough edges, documented rather than hidden:
+
+- **The JWT is stored in `localStorage`.** This is simple and works well for a SPA talking to a separate API, but it means any successful XSS attack can read the token and impersonate the user. The more secure alternative is an `httpOnly` cookie, which JavaScript can't read at all — that shifts the risk to CSRF instead (mitigated with `SameSite` and/or CSRF tokens) and requires the API to manage cookies and CORS credentials rather than just reading an `Authorization` header. For a demo app with no sensitive data, `localStorage` was the reasonable call; for anything handling real user data, the cookie approach is the right one.
+- **No token refresh or expiry handling.** Access tokens expire after 30 minutes. The route guard only checks that a token *exists*, not that it's still valid — so once it expires, you stay on the dashboard and see an error instead of being redirected back to login. A refresh-token flow, or decoding the token's `exp` client-side, would fix this.
+- **Render's free tier sleeps.** The API spins down after inactivity, so the first request after an idle period can take 30–60 seconds while it wakes up.
+- **SQLite on ephemeral storage.** The deployed API's database lives on Render's ephemeral filesystem, so data can reset on redeploy. Fine for a demo; a hosted Postgres instance would be the fix for anything persistent.
