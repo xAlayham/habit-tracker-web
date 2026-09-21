@@ -273,3 +273,146 @@
 .status-message {
   color: var(--text);
 }
+
+.coach-fab {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  padding: 14px 20px;
+  border: 1px solid var(--accent-border);
+  border-radius: 999px;
+  font: inherit;
+  color: white;
+  background: var(--accent);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+}
+
+.coach-fab:hover {
+  filter: brightness(1.1);
+}
+
+.coach-panel {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  width: min(420px, calc(100vw - 32px));
+  height: min(560px, calc(100vh - 48px));
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-raised);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.coach-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.coach-title {
+  margin: 0;
+  font: 600 16px var(--heading);
+  color: var(--text-h);
+}
+
+.coach-close {
+  border: none;
+  font-size: 22px;
+  line-height: 1;
+  color: var(--text);
+  background: transparent;
+  cursor: pointer;
+}
+
+.coach-messages {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.coach-intro {
+  font-size: 15px;
+  color: var(--text);
+}
+
+.coach-suggestion {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  color: var(--text-h);
+  background: var(--bg);
+  cursor: pointer;
+}
+
+.coach-suggestion:hover {
+  border-color: var(--accent-border);
+  background: var(--accent-bg);
+}
+
+.coach-message {
+  margin-bottom: 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 15px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.coach-message-user {
+  margin-left: 32px;
+  color: white;
+  background: var(--accent);
+}
+
+.coach-message-coach {
+  color: var(--text-h);
+  background: var(--bg);
+}
+
+.coach-message-error {
+  color: var(--danger);
+  background: var(--danger-bg);
+}
+
+.coach-status {
+  margin: 0;
+  font-size: 14px;
+  font-style: italic;
+  color: var(--text);
+}
+
+.coach-input-row {
+  display: flex;
+  gap: 8px;
+  padding: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.coach-input {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font: inherit;
+  font-size: 15px;
+  color: var(--text-h);
+  background: var(--bg);
+}
+
+.coach-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}

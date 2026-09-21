@@ -1,5 +1,6 @@
 import React, { useState, useEffect} from "react";
 import { BrowserRouter, Routes, Route, Link, Navigate, useNavigate } from "react-router-dom";
+import Coach from "./Coach";
 import "./App.css";
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -478,6 +479,7 @@ function Dashboard({
           onHabitChanged={onHabitChanged}
         />
       </div>
+      <Coach />
     </div>
   )
 }
