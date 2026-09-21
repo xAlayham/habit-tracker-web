@@ -90,6 +90,12 @@ export default function Coach() {
     }
 
     setMessages((current) => [...current, { role: "user", text: trimmed }]);
+
+    if (!COACH_URL) {
+      console.error("VITE_COACH_URL is not set; it must be defined at build time.");
+      showFailure("The coach isn't configured on this deployment yet.");
+      return;
+    }
     setQuestion("");
     setIsStreaming(true);
     setStatus("Thinking…");
